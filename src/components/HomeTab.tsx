@@ -440,14 +440,6 @@ export default function HomeTab({ setCurrentTab, startNewGame, stats, updateStat
         </aside>
       </div>
 
-      {/* Floating Action Button (FAB) */}
-      <button 
-        onClick={triggerAddNotification}
-        className="fixed right-6 bottom-24 w-14 h-14 bg-[#b71422] hover:bg-[#db3237] text-white rounded-full border-2 border-[#1c1c18] flex items-center justify-center hard-shadow hover:scale-110 active:scale-95 transition-all z-40 group"
-        aria-label="New Challenge"
-      >
-        <span className="material-symbols-outlined text-2xl group-hover:rotate-90 transition-transform">add</span>
-      </button>
     </div>
   );
 }

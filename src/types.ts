@@ -2,7 +2,7 @@
  * Shared Type Definitions for Lyric Genius
  */
 
-export type Tab = 'home' | 'play' | 'ranks' | 'profile' | 'settings';
+export type Tab = 'home' | 'play' | 'ranks' | 'profile' | 'settings' | 'duels';
 
 export interface Question {
   id: string;

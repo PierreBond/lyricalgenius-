@@ -10,6 +10,7 @@ export default function Navigation({ currentTab, setCurrentTab }: NavigationProp
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'home', label: 'Home', icon: 'home' },
     { id: 'play', label: 'Play', icon: 'music_note' },
+    { id: 'duels', label: 'Duels', icon: 'swords' },
     { id: 'ranks', label: 'Ranks', icon: 'leaderboard' },
     { id: 'profile', label: 'Profile', icon: 'person' },
   ];

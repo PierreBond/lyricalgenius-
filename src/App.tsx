@@ -4,6 +4,7 @@ import Header from './components/Header';
 import Navigation from './components/Navigation';
 import HomeTab from './components/HomeTab';
 import PlayTab from './components/PlayTab';
+import DuelsTab from './components/DuelsTab';
 import RanksTab from './components/RanksTab';
 import ProfileTab from './components/ProfileTab';
 import SettingsTab from './components/SettingsTab';
@@ -183,6 +184,15 @@ export default function App() {
             stats={stats}
             updateStats={handleUpdateStats}
             setCurrentTab={setCurrentTab}
+          />
+        )}
+
+        {currentTab === 'duels' && (
+          <DuelsTab
+            stats={stats}
+            setCurrentTab={setCurrentTab}
+            startNewGame={startNewGame}
+            updateStats={handleUpdateStats}
           />
         )}
 
