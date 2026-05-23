@@ -1,0 +1,6 @@
+{
+  "name": "Lyric Genius",
+  "description": "An interactive lyric trivia game styled in a bold Modern Brutalist and Neo-Pop aesthetic with custom playlists, live question timers, user levels, leaderboards, and premium upgrade paths.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
