@@ -6,13 +6,15 @@ interface SettingsTabProps {
   openProFlow: () => void;
   setCurrentTab: (tab: Tab) => void;
   onLogout: () => void;
+  onLaunchTutorial: () => void;
 }
 
 export default function SettingsTab({
   stats,
   openProFlow,
   setCurrentTab,
-  onLogout
+  onLogout,
+  onLaunchTutorial
 }: SettingsTabProps) {
   // Toggle states
   const [soundEffects, setSoundEffects] = useState(true);
@@ -307,6 +309,17 @@ export default function SettingsTab({
         </div>
 
         <div className="bg-white border-2 border-[#1c1c18] hard-shadow rounded-xl overflow-hidden divide-y-2 divide-[#1c1c18]">
+          <button 
+            type="button"
+            onClick={onLaunchTutorial} 
+            className="w-full text-left flex items-center justify-between p-3.5 hover:bg-[#ebe8e1] bg-white transition-colors cursor-pointer text-xs font-bold font-sans"
+          >
+            <span className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-sm">school</span>
+              Replay Academy Tutorial
+            </span>
+            <span className="material-symbols-outlined text-sm">chevron_right</span>
+          </button>
           <a onClick={() => alert("Simulation: Redirecting to official support knowledge base center")} className="flex items-center justify-between p-3.5 hover:bg-[#ebe8e1] transition-colors cursor-pointer text-xs font-bold font-sans">
             <span>Help Center</span>
             <span className="material-symbols-outlined text-sm">open_in_new</span>

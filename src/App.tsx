@@ -9,6 +9,7 @@ import RanksTab from './components/RanksTab';
 import ProfileTab from './components/ProfileTab';
 import SettingsTab from './components/SettingsTab';
 import ProFlow from './components/ProFlow';
+import OnboardingTutorial from './components/OnboardingTutorial';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(true);
@@ -17,6 +18,12 @@ export default function App() {
   
   const [currentTab, setCurrentTab] = useState<Tab>('home');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // New onboarding tutorial visibility trigger
+  const [showTutorial, setShowTutorial] = useState<boolean>(() => {
+    const completed = localStorage.getItem('lyric_genius_tutorial_completed_v1');
+    return completed !== 'true';
+  });
 
   // User Profile stats
   const [stats, setStats] = useState<UserStats>({
@@ -72,6 +79,19 @@ export default function App() {
       ...prev,
       isPro: true
     }));
+  };
+
+  const handleCompleteTutorial = (diamondsGained: number) => {
+    localStorage.setItem('lyric_genius_tutorial_completed_v1', 'true');
+    setShowTutorial(false);
+    if (diamondsGained > 0) {
+      handleUpdateStats(0, diamondsGained);
+    }
+  };
+
+  const handleCloseTutorial = () => {
+    localStorage.setItem('lyric_genius_tutorial_completed_v1', 'true');
+    setShowTutorial(false);
   };
 
   const handleLogout = () => {
@@ -216,6 +236,7 @@ export default function App() {
             openProFlow={() => setCurrentTab('pro')}
             setCurrentTab={setCurrentTab}
             onLogout={handleLogout}
+            onLaunchTutorial={() => setShowTutorial(true)}
           />
         )}
       </div>
@@ -225,6 +246,14 @@ export default function App() {
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
       />
+
+      {/* Onboarding Interactive Tutorial Overlay */}
+      {showTutorial && (
+        <OnboardingTutorial 
+          onComplete={handleCompleteTutorial} 
+          onClose={handleCloseTutorial} 
+        />
+      )}
     </div>
   );
 }
