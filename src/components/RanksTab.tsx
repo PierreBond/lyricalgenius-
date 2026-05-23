@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { LeaderboardEntry, UserStats } from '../types';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface RanksTabProps {
   stats: UserStats;
@@ -7,6 +8,7 @@ interface RanksTabProps {
 
 export default function RanksTab({ stats }: RanksTabProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showNotification, setShowNotification] = useState<string | null>(null);
 
   // Static rankings matching requested html image states
   const baseRankings: LeaderboardEntry[] = [
@@ -83,8 +85,63 @@ export default function RanksTab({ stats }: RanksTabProps) {
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const userRankEntry = remappedRankings.find(r => r.isCurrentUser);
+
+  const handleShareRank = () => {
+    if (!userRankEntry) return;
+    
+    const shareText = `🎵 I am ranked #${userRankEntry.rank} on the Lyric Genius Leaderboard with ${userRankEntry.diamonds.toLocaleString()} Diamonds! 💎 Can you rise to the top and beat my score? 🏆⚡`;
+
+    const copySuccess = () => {
+      setShowNotification("Rank shared! Standing details copied to clipboard! 📋🎉");
+      setTimeout(() => {
+        setShowNotification(null);
+      }, 3500);
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(shareText)
+        .then(copySuccess)
+        .catch(() => {
+          setShowNotification("Failed to copy! Please select and copy manually.");
+        });
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = shareText;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        copySuccess();
+      } catch (err) {
+        setShowNotification("Clipboard access not supported in this browser!");
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
   return (
     <div className="w-full pb-24 pt-4 px-4 max-w-lg md:max-w-2xl mx-auto space-y-8 select-none">
+      {/* Toast Alert */}
+      <AnimatePresence>
+        {showNotification && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: -20, x: '-50%' }}
+            className="fixed top-20 left-1/2 z-50 bg-[#fcd400] text-[#1c1c18] border-2 border-[#1c1c18] px-4 py-3 rounded-xl font-sans font-bold text-sm hard-shadow flex items-center justify-between gap-2 max-w-sm shadow-xl"
+          >
+            <span>{showNotification}</span>
+            <button 
+              onClick={() => setShowNotification(null)}
+              className="text-xs uppercase font-black hover:text-[#b71422] transition-colors ml-2 cursor-pointer"
+            >
+              OK
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Title Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-2">
         <div className="flex items-center gap-2">
@@ -163,6 +220,33 @@ export default function RanksTab({ stats }: RanksTabProps) {
         )}
       </div>
 
+      {/* User Standing & Share Box */}
+      {userRankEntry && (
+        <div className="bg-[#fcd400] border-2 border-[#1c1c18] rounded-[24px] p-4.5 hard-shadow flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full border-2 border-[#1c1c18] overflow-hidden bg-white flex-shrink-0">
+              <img alt="Your Avatar" className="w-full h-full object-cover" src={userRankEntry.avatar} />
+            </div>
+            <div className="text-center sm:text-left">
+              <p className="font-sans font-black text-[10px] uppercase text-[#5b403e] tracking-wider leading-none">
+                Your Current Leaderboard Standing
+              </p>
+              <h3 className="font-display font-black text-md text-[#1c1c18] mt-1">
+                Rank <span className="text-[#b71422]">#{userRankEntry.rank}</span> • <span className="font-sans font-black">{userRankEntry.diamonds.toLocaleString()} 💎</span>
+              </h3>
+            </div>
+          </div>
+          
+          <button
+            onClick={handleShareRank}
+            className="w-full sm:w-auto bg-[#b71422] hover:bg-black text-white hover:text-[#fcf9f2] border-2 border-[#1c1c18] px-4 py-2 rounded-xl font-sans font-black text-xs uppercase flex items-center justify-center gap-1.5 hard-shadow-sm transition-all active:translate-y-0.5 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-sm font-black">share</span>
+            SHARE STANDING
+          </button>
+        </div>
+      )}
+
       {/* Ranking List */}
       <div className="space-y-3">
         {filteredList.map((player) => (
@@ -190,8 +274,20 @@ export default function RanksTab({ stats }: RanksTabProps) {
             </div>
             
             {player.isCurrentUser ? (
-              <div className="bg-[#b71422] text-white px-2.5 py-1 rounded-full font-sans font-bold text-[9px] border border-[#1c1c18] uppercase">
-                Me
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleShareRank();
+                  }}
+                  className="bg-[#b71422] hover:bg-black text-white hover:text-[#fcf9f2] border-2 border-[#1c1c18] px-2.5 py-1.5 rounded-xl font-sans font-black text-[9px] uppercase flex items-center gap-1 cursor-pointer transition-transform"
+                >
+                  <span className="material-symbols-outlined text-[10px] font-black">share</span>
+                  SHARE
+                </button>
+                <div className="bg-[#1c1c18] text-[#fcd400] px-2.5 py-1.5 border border-[#1c1c18] rounded-xl font-sans font-black text-[9px] uppercase">
+                  Me
+                </div>
               </div>
             ) : (
               <div className="w-8 h-8 rounded-full border border-[#1c1c18] flex items-center justify-center bg-[#f1eee7]">

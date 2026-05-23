@@ -9,6 +9,17 @@ interface HomeTabProps {
   updateStats?: (xpGained: number, diamondsGained: number) => void;
 }
 
+interface Quest {
+  id: string;
+  title: string;
+  description: string;
+  target: number;
+  current: number;
+  reward: number;
+  claimed: boolean;
+  icon: string;
+}
+
 export default function HomeTab({ setCurrentTab, startNewGame, stats, updateStats }: HomeTabProps) {
   const [showNotification, setShowNotification] = useState<string | null>(null);
 
@@ -22,6 +33,63 @@ export default function HomeTab({ setCurrentTab, startNewGame, stats, updateStat
     const lastCheck = localStorage.getItem('last_streak_check_in');
     const todayStr = new Date().toDateString();
     return lastCheck === todayStr;
+  });
+
+  // Daily Quests State Loaded with LocalStorage Persistence
+  const [quests, setQuests] = useState<Quest[]>(() => {
+    const saved = localStorage.getItem('lyric_genius_daily_quests_v1');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Sync streak checked-in status dynamically
+        const lastCheck = localStorage.getItem('last_streak_check_in');
+        const checkedInToday = lastCheck === new Date().toDateString();
+        return parsed.map((q: Quest) => {
+          if (q.id === 'quest-streak') {
+            return { ...q, current: checkedInToday ? 1 : q.current };
+          }
+          return q;
+        });
+      } catch (e) {
+        // Fallback
+      }
+    }
+    
+    const lastCheck = localStorage.getItem('last_streak_check_in');
+    const checkedInToday = lastCheck === new Date().toDateString();
+
+    return [
+      {
+        id: 'quest-pop',
+        title: 'Pop Prodigy',
+        description: 'Solve 3 Pop trivia games',
+        target: 3,
+        current: 0,
+        reward: 35,
+        claimed: false,
+        icon: 'music_note'
+      },
+      {
+        id: 'quest-duel',
+        title: 'Gladiator Clash',
+        description: 'Start 1 match in the Duels Arena',
+        target: 1,
+        current: 0,
+        reward: 25,
+        claimed: false,
+        icon: 'swords'
+      },
+      {
+        id: 'quest-streak',
+        title: 'Streak Master',
+        description: 'Check in for your streak today',
+        target: 1,
+        current: checkedInToday ? 1 : 0,
+        reward: 20,
+        claimed: false,
+        icon: 'local_fire_department'
+      }
+    ];
   });
 
   // Confetti details state type
@@ -74,8 +142,84 @@ export default function HomeTab({ setCurrentTab, startNewGame, stats, updateStat
     if (updateStats) {
       updateStats(0, 25); // Free 25 diamonds for daily activity
     }
+
+    // Set streak quest to complete immediately
+    setQuests(prev => {
+      const updated = prev.map(q => q.id === 'quest-streak' ? { ...q, current: 1 } : q);
+      localStorage.setItem('lyric_genius_daily_quests_v1', JSON.stringify(updated));
+      return updated;
+    });
+
     triggerConfetti();
     setShowNotification(`Daily Streak Extended! ${newStreak} consecutive days logged in! (+25 Diamonds) 💎🔥`);
+  };
+
+  const handleStartGame = (categoryName?: string, isDuel = false) => {
+    setQuests(prev => {
+      const updated = prev.map(q => {
+        if (q.id === 'quest-pop' && categoryName === 'Pop') {
+          return { ...q, current: Math.min(q.target, q.current + 1) };
+        }
+        if (q.id === 'quest-duel' && isDuel) {
+          return { ...q, current: Math.min(q.target, q.current + 1) };
+        }
+        return q;
+      });
+      localStorage.setItem('lyric_genius_daily_quests_v1', JSON.stringify(updated));
+      return updated;
+    });
+
+    startNewGame(categoryName);
+  };
+
+  const advanceQuest = (questId: string) => {
+    setQuests(prev => {
+      const updated = prev.map(q => {
+        if (q.id === questId) {
+          return { ...q, current: Math.min(q.target, q.current + 1) };
+        }
+        return q;
+      });
+      localStorage.setItem('lyric_genius_daily_quests_v1', JSON.stringify(updated));
+      return updated;
+    });
+    
+    // Notify
+    const quest = quests.find(q => q.id === questId);
+    if (quest) {
+      const nextProgress = Math.min(quest.target, quest.current + 1);
+      if (nextProgress === quest.target) {
+        setShowNotification(`Quest "${quest.title}" Completed! Claim your reward! 💎✨`);
+      } else {
+        setShowNotification(`Increased progress for "${quest.title}"! (${nextProgress}/${quest.target})`);
+      }
+    }
+  };
+
+  const claimQuest = (questId: string) => {
+    const quest = quests.find(q => q.id === questId);
+    if (!quest) return;
+    if (quest.current < quest.target) {
+      setShowNotification(`Quest "${quest.title}" is not complete yet!`);
+      return;
+    }
+    if (quest.claimed) {
+      setShowNotification("Quest already claimed!");
+      return;
+    }
+
+    if (updateStats) {
+      updateStats(0, quest.reward); // Award diamonds
+    }
+    
+    setQuests(prev => {
+      const updated = prev.map(q => q.id === questId ? { ...q, claimed: true } : q);
+      localStorage.setItem('lyric_genius_daily_quests_v1', JSON.stringify(updated));
+      return updated;
+    });
+
+    triggerConfetti();
+    setShowNotification(`Claimed ${quest.title}! Received +${quest.reward} Diamonds! 💎🎉`);
   };
 
   const categories = [
@@ -297,7 +441,7 @@ export default function HomeTab({ setCurrentTab, startNewGame, stats, updateStat
             </p>
             <div className="pt-2">
               <button 
-                onClick={() => startNewGame('Pop')}
+                onClick={() => handleStartGame('Pop')}
                 className="bg-[#1c1c18] text-[#fcf9f2] hover:bg-[#b71422] hover:text-white px-6 py-3 rounded-full font-sans font-extrabold text-xs md:text-sm hard-shadow-sm transition-all active:translate-x-0.5 active:translate-y-0.5"
               >
                 PLAY NOW
@@ -319,11 +463,166 @@ export default function HomeTab({ setCurrentTab, startNewGame, stats, updateStat
         </div>
       </section>
 
+      {/* Daily Quests Component Section */}
+      <section className="bg-white border-2 border-[#1c1c18] rounded-[24px] p-4.5 md:p-5 hard-shadow space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[#ff5a1f] text-2xl fill-1 animate-bounce" style={{ fontVariationSettings: "'FILL' 1" }}>emoji_events</span>
+            <div>
+              <h3 className="font-display font-black text-sm uppercase text-[#1c1c18] tracking-tight">
+                Daily Quests
+              </h3>
+              <p className="font-sans text-[10px] text-[#5b403e] font-black">
+                Achieve micro-goals to fetch free bonus diamonds!
+              </p>
+            </div>
+          </div>
+          <div className="bg-[#f1eee7] border border-[#1c1c18] px-2.5 py-1 rounded-lg text-[9px] font-sans font-black text-[#1c1c18] uppercase tracking-wider inline-flex self-start sm:self-auto items-center gap-1.5 shadow-xs">
+            <span className="w-2 h-2 bg-[#10b981] rounded-full animate-pulse" />
+            Completed: {quests.filter(q => q.claimed).length} / {quests.length}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {quests.map((q) => {
+            const isCompleted = q.current >= q.target;
+            const progressPct = Math.min(100, (q.current / q.target) * 100);
+
+            return (
+              <div 
+                key={q.id}
+                className={`border-2 border-[#1c1c18] rounded-2xl p-3 md:p-4 transition-all flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 ${
+                  q.claimed 
+                    ? 'bg-[#f1eee7] opacity-65' 
+                    : isCompleted 
+                      ? 'bg-[#f9f5e8] border-[#fcd400]' 
+                      : 'bg-[#fcf9f2] hover:bg-white'
+                }`}
+              >
+                <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                  <div className={`w-10 h-10 rounded-xl border-2 border-[#1c1c18] flex items-center justify-center text-lg shadow-xs flex-shrink-0 ${
+                    q.claimed 
+                      ? 'bg-gray-300 text-gray-600' 
+                      : isCompleted 
+                        ? 'bg-[#10b981] text-white' 
+                        : 'bg-[#ff5a1f] text-[#fcf9f2]'
+                  }`}>
+                    {q.id === 'quest-pop' ? (
+                      <span className="material-symbols-outlined text-md font-black">music_note</span>
+                    ) : q.id === 'quest-duel' ? (
+                      <span className="material-symbols-outlined text-md font-black">sports_martial_arts</span>
+                    ) : (
+                      <span className="material-symbols-outlined text-md font-black">local_fire_department</span>
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-sans font-black text-xs text-[#1c1c18] leading-none truncate">
+                        {q.title}
+                      </h4>
+                      {q.claimed && (
+                        <span className="bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/25 rounded px-1.5 py-0.5 text-[7px] font-sans font-black uppercase tracking-wider">
+                          Claimed
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-sans text-[10px] text-[#5b403e] font-bold leading-tight">
+                      {q.description}
+                    </p>
+
+                    {!q.claimed && (
+                      <div className="flex items-center gap-2.5 pt-1">
+                        <div className="flex-1 bg-white h-2 rounded-full border border-[#1c1c18] overflow-hidden">
+                          <div 
+                            className="bg-[#fcd400] h-full border-r border-[#1c1c18] transition-all duration-500"
+                            style={{ width: `${progressPct}%` }}
+                          />
+                        </div>
+                        <span className="font-sans text-[9px] text-[#1c1c18] font-black flex-shrink-0">
+                          {q.current} / {q.target}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 border-t sm:border-t-0 border-[#1c1c18]/10 pt-2.5 sm:pt-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-sans text-[9px] text-[#5b403e] font-extrabold uppercase tracking-wide">
+                      Reward:
+                    </span>
+                    <span className="font-sans font-black text-[10px] text-[#1c1c18] bg-[#fcd400] border border-[#1c1c18] px-1.5 py-0.5 rounded shadow-xs">
+                      +{q.reward} 💎
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    {/* Tiny increment helper allowing user to simulate/skip tasks quickly and see completion */}
+                    {!isCompleted && !q.claimed && (
+                      <button
+                        onClick={() => advanceQuest(q.id)}
+                        className="bg-white hover:bg-black text-[#1c1c18] hover:text-white border border-[#1c1c18] w-6 h-6 rounded-lg flex items-center justify-center transition-all active:scale-90 cursor-pointer"
+                        title="Simulate task progress step"
+                      >
+                        <span className="material-symbols-outlined text-xs font-black">add</span>
+                      </button>
+                    )}
+
+                    {q.claimed ? (
+                      <button
+                        disabled
+                        className="bg-gray-100 text-gray-400 border border-gray-300 px-3 py-1 rounded-xl font-sans font-extrabold text-[9px] uppercase cursor-not-allowed"
+                      >
+                        Claimed
+                      </button>
+                    ) : isCompleted ? (
+                      <button
+                        onClick={() => claimQuest(q.id)}
+                        className="bg-[#10b981] hover:bg-black text-white hover:text-[#10b981] border border-[#1c1c18] px-3 py-1 rounded-xl font-sans font-black text-[9px] uppercase shadow-xs cursor-pointer animate-pulse"
+                      >
+                        CLAIM
+                      </button>
+                    ) : q.id === 'quest-pop' ? (
+                      <button
+                        onClick={() => handleStartGame('Pop')}
+                        className="bg-[#1c1c18] hover:bg-[#b71422] text-[#fcf9f2] hover:text-white px-3 py-1 border border-[#1c1c18] rounded-xl font-sans font-black text-[9px] uppercase tracking-wider transition-all cursor-pointer"
+                      >
+                        PLAY
+                      </button>
+                    ) : q.id === 'quest-duel' ? (
+                      <button
+                        onClick={() => setCurrentTab('duels')}
+                        className="bg-[#1c1c18] hover:bg-[#ff5a1f] text-white px-3 py-1 border border-[#1c1c18] rounded-xl font-sans font-black text-[9px] uppercase tracking-wider transition-all cursor-pointer"
+                      >
+                        DUEL
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleCheckIn}
+                        disabled={hasCheckedInToday}
+                        className={`px-3 py-1 border border-[#1c1c18] rounded-xl font-sans font-black text-[9px] uppercase tracking-wider transition-all cursor-pointer ${
+                          hasCheckedInToday 
+                            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' 
+                            : 'bg-[#ff5a1f] text-white hover:bg-[#b71422]'
+                        }`}
+                      >
+                        CHECK IN
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       {/* Popular Categories */}
       <section className="space-y-4">
         <div className="flex justify-between items-end">
           <h3 className="font-display font-extrabold text-lg uppercase italic tracking-tight">Popular Beats</h3>
-          <span className="font-sans font-bold text-xs text-[#b71422] underline underline-offset-4 cursor-pointer" onClick={() => startNewGame()}>
+          <span className="font-sans font-bold text-xs text-[#b71422] underline underline-offset-4 cursor-pointer" onClick={() => handleStartGame()}>
             Play All ({TRIVIA_QUESTIONS_COUNT()})
           </span>
         </div>
@@ -331,7 +630,7 @@ export default function HomeTab({ setCurrentTab, startNewGame, stats, updateStat
           {categories.map((cat, idx) => (
             <div 
               key={cat.id}
-              onClick={() => startNewGame(cat.name)}
+              onClick={() => handleStartGame(cat.name)}
               className="bg-[#fcf9f2] border-2 border-[#1c1c18] rounded-[20px] p-3 flex flex-col gap-3 group hover:bg-[#fcd400] transition-colors cursor-pointer hard-shadow-sm active:translate-y-0.5"
             >
               <div className={`aspect-square rounded-xl border-2 border-[#1c1c18] overflow-hidden transition-transform ${
@@ -380,7 +679,7 @@ export default function HomeTab({ setCurrentTab, startNewGame, stats, updateStat
                 )}
                 {item.hasAcceptButton && (
                   <button 
-                    onClick={() => startNewGame(item.challengeGenre)}
+                    onClick={() => handleStartGame(item.challengeGenre, true)}
                     className="flex-shrink-0 bg-[#1c1c18] text-white hover:bg-[#b71422] px-3 py-1.5 rounded-lg font-sans font-bold text-[10px] uppercase hard-shadow-sm active:translate-y-0.5"
                   >
                     ACCEPT

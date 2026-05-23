@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Tab, UserStats, MatchHistoryItem, Achievement } from '../types';
+import { motion } from 'motion/react';
 import { 
   ResponsiveContainer, 
   RadarChart, 
@@ -40,10 +41,81 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   return null;
 };
 
+interface AnimatedRPGCounterProps {
+  value: number;
+  className?: string;
+}
+
+const AnimatedRPGCounter = ({ value, className = '' }: AnimatedRPGCounterProps) => {
+  const [displayValue, setDisplayValue] = useState(value);
+  const [isCounting, setIsCounting] = useState(false);
+  const prevValueRef = useRef(value);
+
+  useEffect(() => {
+    if (value === prevValueRef.current) return;
+    setIsCounting(true);
+    
+    const startValue = prevValueRef.current;
+    const endValue = value;
+    const duration = 1000; // ms transition duration
+    const startTime = performance.now();
+    let animFrame: number;
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function for smooth arcade feel
+      const easeOutQuad = progress * (2 - progress);
+      const current = Math.floor(startValue + (endValue - startValue) * easeOutQuad);
+      
+      setDisplayValue(current);
+
+      if (progress < 1) {
+        animFrame = requestAnimationFrame(animate);
+      } else {
+        setDisplayValue(endValue);
+        setIsCounting(false);
+        prevValueRef.current = endValue;
+      }
+    };
+
+    animFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animFrame);
+  }, [value]);
+
+  return (
+    <motion.span
+      animate={isCounting ? {
+        scale: [1, 1.3, 0.95, 1.15, 1],
+        y: [0, -4, 1, -1, 0],
+        textShadow: [
+          "0px 0px 0px rgba(183, 20, 34, 0)",
+          "0px 2px 5px rgba(183, 20, 34, 0.5)",
+          "0px 1px 2px rgba(183, 20, 34, 0.3)",
+          "0px 0px 0px rgba(183, 20, 34, 0)"
+        ],
+      } : {}}
+      transition={{
+        duration: 0.6,
+        ease: "easeOut"
+      }}
+      className={`inline-block font-sans font-black ${className} ${isCounting ? 'text-[#b71422] transition-colors duration-100' : ''}`}
+    >
+      {displayValue.toLocaleString()}
+    </motion.span>
+  );
+};
+
 export default function ProfileTab({ stats, updateStats, setCurrentTab }: ProfileTabProps) {
   const [username, setUsername] = useState('LyricLord_42');
   const [isEditing, setIsEditing] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const achievements: Achievement[] = [
     { id: '1', title: '5 Day Streak', icon: 'local_fire_department', colorClass: 'bg-[#fcd400]', unlocked: true },
@@ -79,8 +151,8 @@ export default function ProfileTab({ stats, updateStats, setCurrentTab }: Profil
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIOXy9cHYQZkuvXne9VCqqmAzZcLLwXWc7Nzs1i1VqBIdw3VF0L4rI6tdYNLL4zJL2VVn0cBk--VzRvasWhSxV_e6_J2PdmvdoPbU6ImE2KjMjTr6N7IaNyI5GL3z1J4txZpJLrhGRfm8iJY6c5UNWin6g87v56AlrI--TH4kC5-iwFjYo7w57j44hBIMsqDT4Pu3qOuilB_-9vkuyiBmAithvnsICKSg7RGwQspmiGmIkDoPs7zKE7VYWuHq55oJB6Adsr-enz_M" 
             />
           </div>
-          <div className="absolute -bottom-2 -right-2 bg-[#fcd400] text-black border-2 border-[#1c1c18] px-3 py-1 rounded-lg hard-shadow-sm font-sans font-bold text-xs rotate-12">
-            LVL {stats.level}
+          <div className="absolute -bottom-2 -right-2 bg-[#fcd400] text-[#1c1c18] border-2 border-[#1c1c18] px-3 py-1 rounded-lg hard-shadow-sm font-sans font-black text-xs rotate-12 flex items-center gap-0.5">
+            LVL <AnimatedRPGCounter value={stats.level} />
           </div>
         </div>
 
@@ -121,7 +193,9 @@ export default function ProfileTab({ stats, updateStats, setCurrentTab }: Profil
         <div className="bg-white border-2 border-[#1c1c18] p-4 rounded-xl hard-shadow flex flex-col items-center text-center">
           <span className="material-symbols-outlined text-[#705d00] mb-1 text-2xl fill-1" style={{ fontVariationSettings: "'FILL' 1" }}>stars</span>
           <p className="font-sans text-[10px] uppercase font-extrabold text-[#5b403e]">Total XP</p>
-          <p className="font-display font-black text-lg md:text-xl text-[#1c1c18] mt-1">{stats.xp.toLocaleString()}</p>
+          <p className="font-display font-black text-lg md:text-xl text-[#1c1c18] mt-1">
+            <AnimatedRPGCounter value={stats.xp} />
+          </p>
         </div>
 
         {/* Win Rate */}
@@ -157,31 +231,37 @@ export default function ProfileTab({ stats, updateStats, setCurrentTab }: Profil
             Accuracy and response speed by musical core
           </p>
           <div className="w-full h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
-                <PolarGrid stroke="#1c1c18" strokeOpacity={0.15} strokeWidth={1} />
-                <PolarAngleAxis 
-                  dataKey="name" 
-                  tick={{ fill: '#1c1c18', fontSize: 10, fontWeight: 800, fontFamily: 'sans-serif' }} 
-                />
-                <PolarRadiusAxis 
-                  angle={30} 
-                  domain={[0, 100]} 
-                  tickCount={4} 
-                  tick={false} 
-                  axisLine={false} 
-                />
-                <Radar
-                  name="Proficiency"
-                  dataKey="value"
-                  stroke="#b71422"
-                  strokeWidth={2}
-                  fill="#ff5a1f"
-                  fillOpacity={0.25}
-                />
-                <Tooltip content={<CustomTooltip />} />
-              </RadarChart>
-            </ResponsiveContainer>
+            {isMounted ? (
+              <ResponsiveContainer width="99%" height={220}>
+                <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
+                  <PolarGrid stroke="#1c1c18" strokeOpacity={0.15} strokeWidth={1} />
+                  <PolarAngleAxis 
+                    dataKey="name" 
+                    tick={{ fill: '#1c1c18', fontSize: 10, fontWeight: 800, fontFamily: 'sans-serif' }} 
+                  />
+                  <PolarRadiusAxis 
+                    angle={30} 
+                    domain={[0, 100]} 
+                    tickCount={4} 
+                    tick={false} 
+                    axisLine={false} 
+                  />
+                  <Radar
+                    name="Proficiency"
+                    dataKey="value"
+                    stroke="#b71422"
+                    strokeWidth={2}
+                    fill="#ff5a1f"
+                    fillOpacity={0.25}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                </RadarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center font-sans text-xs text-gray-400 font-bold">
+                Loading Radar metrics...
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-4 gap-2 w-full mt-4 pt-4 border-t-2 border-[#1c1c18]/10 text-center">
             {radarData.map((genre) => (
