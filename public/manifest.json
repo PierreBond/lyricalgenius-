@@ -1,0 +1,19 @@
+{
+  "short_name": "LyricGenius",
+  "name": "Lyric Genius - Trivia & Duels Royale",
+  "description": "The ultimate high-fidelity lyric trivia platform. Solve interactive beats, start custom duels, complete daily quests, and secure your legendary rank!",
+  "icons": [
+    {
+      "src": "https://lh3.googleusercontent.com/aida-public/AB6AXuCi17My76izBbL_luz-Q_9WXkkpRW2hpFhPSdmYAfqEgz8k2Geliqrwwl1Htk8itLLSe82DrkitKIfNu2llZlOmU15pNDyliseeOTgCF1QI7WdAzUflxPJZk-qv4JxNWJlNQzYit5Et-WxFwdqY2iU2RhDGNyzhEvR3hXHYqimOhNeLjL_qtMNWUzQO7vR-PkeqQ6DwU-DRnK6jzG5sTzklPwUHTLB4JjAggHBLuDxuoA4WY1kdGDC8RISmm3Fb0jrbXkkatEUMC8U",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#fcf9f2",
+  "theme_color": "#fcd400",
+  "display": "standalone",
+  "orientation": "portrait",
+  "categories": ["music", "games"]
+}

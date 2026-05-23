@@ -7,6 +7,7 @@ interface HeaderProps {
   stats: UserStats;
   onBack?: () => void;
   showBack?: boolean;
+  isOffline?: boolean;
 }
 
 export default function Header({
@@ -14,7 +15,8 @@ export default function Header({
   setCurrentTab,
   stats,
   onBack,
-  showBack = false
+  showBack = false,
+  isOffline = false
 }: HeaderProps) {
   return (
     <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 md:px-8 h-16 bg-[#fcf9f2] border-b-2 border-[#1c1c18]">
@@ -36,12 +38,20 @@ export default function Header({
             menu
           </button>
         )}
-        <h1 
-          onClick={() => setCurrentTab('home')}
-          className="font-display font-black text-xl md:text-2xl text-[#1c1c18] uppercase tracking-tighter italic cursor-pointer select-none"
-        >
-          Lyric Genius
-        </h1>
+        <div className="flex items-center gap-2">
+          <h1 
+            onClick={() => setCurrentTab('home')}
+            className="font-display font-black text-xl md:text-2xl text-[#1c1c18] uppercase tracking-tighter italic cursor-pointer select-none"
+          >
+            Lyric Genius
+          </h1>
+          {isOffline && (
+            <div className="bg-[#b71422] text-[#fcf9f2] border-2 border-[#1c1c18] px-2.5 py-0.5 rounded-lg text-[8px] font-sans font-black flex items-center gap-1 animate-pulse hard-shadow-xs select-none">
+              <span className="material-symbols-outlined text-[10px] font-black">wifi_off</span>
+              OFFLINE
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-3">

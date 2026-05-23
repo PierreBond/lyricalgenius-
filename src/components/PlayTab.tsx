@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Tab, UserStats, Question } from '../types';
 import { TRIVIA_QUESTIONS } from '../data/questions';
 
@@ -401,84 +402,98 @@ export default function PlayTab({
         ></div>
       </div>
 
-      {/* Lyrics Card */}
-      <div className="w-full bg-white rounded-[24px] border-2 border-[#1c1c18] p-6 hard-shadow relative mb-6 transform -rotate-1 shadow-md">
-        <span 
-          className="material-symbols-outlined absolute -top-3 -left-3 bg-[#b71422] text-white p-2 rounded-full border-2 border-[#1c1c18] hard-shadow-sm fill-1"
-          style={{ fontVariationSettings: "'FILL' 1" }}
-        >
-          format_quote
-        </span>
-        
-        <div className="flex flex-col gap-3 text-center pt-2">
-          <p className="font-display font-extrabold text-[#1c1c18] leading-snug tracking-tight text-lg md:text-xl">
-            {currentQuestion?.lyrics}
-          </p>
-          <div className="mt-2 inline-flex items-center justify-center gap-1.5 py-1 px-3 bg-[#e5e2db] rounded-full w-max mx-auto border-2 border-[#1c1c18] border-dashed">
-            <span className="material-symbols-outlined text-sm font-bold">music_note</span>
-            <span className="font-sans font-extrabold text-[10px] uppercase tracking-wider">{currentQuestion?.category} Hits</span>
-          </div>
-        </div>
-
-        {/* Grayscale low-opacity background decoration */}
-        <div className="w-full h-32 overflow-hidden rounded-xl border-2 border-[#1c1c18] mt-4 opacity-15 grayscale select-none pointer-events-none">
-          <img className="w-full h-full object-cover" src={currentQuestion?.image} alt="Stylized cover" />
-        </div>
-      </div>
-
-      {/* Choice Chips Grid */}
-      <div className="w-full grid grid-cols-1 gap-2.5">
-        {currentQuestion?.choices.map((choice, idx) => {
-          const letter = String.fromCharCode(65 + idx); // A, B, C, D
-          const isSelected = selectedAnswer === idx;
-          const isCorrectAnswer = currentQuestion.answerIndex === idx;
-
-          let optionStyle = "bg-white border-2 border-[#1c1c18] hard-shadow-sm";
-          let badgeStyle = "bg-[#e5e2db] text-[#1c1c18]";
-          let showCheck = false;
-
-          if (isAnswered) {
-            if (isCorrectAnswer) {
-              // Highlight correct answer green/yellow
-              optionStyle = "bg-[#fcd400] border-2 border-[#1c1c18] stroke-[2.5px] hard-shadow scale-[1.01]";
-              badgeStyle = "bg-[#1c1c18] text-white";
-              showCheck = true;
-            } else if (isSelected) {
-              // Mark chosen wrong answer as red alert
-              optionStyle = "bg-[#ffdad7] border-2 border-[#b71422] hard-shadow-sm opacity-90 scale-[0.99]";
-              badgeStyle = "bg-[#b71422] text-white";
-            } else {
-              // Fade non-selected wrong answers
-              optionStyle = "bg-white border border-[#e5e2db] opacity-50";
-            }
-          }
-
-          return (
-            <button
-              key={idx}
-              disabled={isAnswered}
-              onClick={() => handleAnswerSelection(idx)}
-              className={`w-full p-3.5 rounded-xl flex items-center justify-between transition-all duration-150 text-left ${
-                isAnswered ? '' : 'hover:bg-[#ebe8e1] active:translate-y-0.5 pointer-events-auto'
-              } ${optionStyle}`}
-            >
-              <span className="flex items-center gap-3">
-                <span className={`w-7 h-7 rounded-full border-2 border-[#1c1c18] flex items-center justify-center font-display font-extrabold text-xs transition-colors ${badgeStyle}`}>
-                  {letter}
-                </span>
-                <span className="font-sans font-bold text-xs md:text-sm text-[#1c1c18]">
-                  {choice}
-                </span>
+      {/* Animated Trivia Question Container */}
+      <div className="w-full relative overflow-x-hidden min-h-[460px] flex flex-col items-center">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, x: 80 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -80 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="w-full flex flex-col items-center"
+          >
+            {/* Lyrics Card */}
+            <div className="w-full bg-white rounded-[24px] border-2 border-[#1c1c18] p-6 hard-shadow relative mb-6 transform -rotate-1 shadow-md">
+              <span 
+                className="material-symbols-outlined absolute -top-3 -left-3 bg-[#b71422] text-white p-2 rounded-full border-2 border-[#1c1c18] hard-shadow-sm fill-1"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                format_quote
               </span>
               
-              {isAnswered && (
-                <span className="material-symbols-outlined text-[#1c1c18] text-sm md:text-md">
-                  {isCorrectAnswer ? 'check_circle' : isSelected ? 'cancel' : 'radio_button_unchecked'}
-                </span>
-              )}
-            </button>
-          );
-        })}
+              <div className="flex flex-col gap-3 text-center pt-2">
+                <p className="font-display font-extrabold text-[#1c1c18] leading-snug tracking-tight text-lg md:text-xl">
+                  {currentQuestion?.lyrics}
+                </p>
+                <div className="mt-2 inline-flex items-center justify-center gap-1.5 py-1 px-3 bg-[#e5e2db] rounded-full w-max mx-auto border-2 border-[#1c1c18] border-dashed">
+                  <span className="material-symbols-outlined text-sm font-bold">music_note</span>
+                  <span className="font-sans font-extrabold text-[10px] uppercase tracking-wider">{currentQuestion?.category} Hits</span>
+                </div>
+              </div>
+
+              {/* Grayscale low-opacity background decoration */}
+              <div className="w-full h-32 overflow-hidden rounded-xl border-2 border-[#1c1c18] mt-4 opacity-15 grayscale select-none pointer-events-none">
+                <img className="w-full h-full object-cover" src={currentQuestion?.image} alt="Stylized cover" />
+              </div>
+            </div>
+
+            {/* Choice Chips Grid */}
+            <div className="w-full grid grid-cols-1 gap-2.5">
+              {currentQuestion?.choices.map((choice, idx) => {
+                const letter = String.fromCharCode(65 + idx); // A, B, C, D
+                const isSelected = selectedAnswer === idx;
+                const isCorrectAnswer = currentQuestion.answerIndex === idx;
+
+                let optionStyle = "bg-white border-2 border-[#1c1c18] hard-shadow-sm";
+                let badgeStyle = "bg-[#e5e2db] text-[#1c1c18]";
+                let showCheck = false;
+
+                if (isAnswered) {
+                  if (isCorrectAnswer) {
+                    // Highlight correct answer green/yellow
+                    optionStyle = "bg-[#fcd400] border-2 border-[#1c1c18] stroke-[2.5px] hard-shadow scale-[1.01]";
+                    badgeStyle = "bg-[#1c1c18] text-white";
+                    showCheck = true;
+                  } else if (isSelected) {
+                    // Mark chosen wrong answer as red alert
+                    optionStyle = "bg-[#ffdad7] border-2 border-[#b71422] hard-shadow-sm opacity-90 scale-[0.99]";
+                    badgeStyle = "bg-[#b71422] text-white";
+                  } else {
+                    // Fade non-selected wrong answers
+                    optionStyle = "bg-white border border-[#e5e2db] opacity-50";
+                  }
+                }
+
+                return (
+                  <button
+                    key={idx}
+                    disabled={isAnswered}
+                    onClick={() => handleAnswerSelection(idx)}
+                    className={`w-full p-3.5 rounded-xl flex items-center justify-between transition-all duration-150 text-left ${
+                      isAnswered ? '' : 'hover:bg-[#ebe8e1] active:translate-y-0.5 pointer-events-auto'
+                    } ${optionStyle}`}
+                  >
+                    <span className="flex items-center gap-3">
+                      <span className={`w-7 h-7 rounded-full border-2 border-[#1c1c18] flex items-center justify-center font-display font-extrabold text-xs transition-colors ${badgeStyle}`}>
+                        {letter}
+                      </span>
+                      <span className="font-sans font-bold text-xs md:text-sm text-[#1c1c18]">
+                        {choice}
+                      </span>
+                    </span>
+                    
+                    {isAnswered && (
+                      <span className="material-symbols-outlined text-[#1c1c18] text-sm md:text-md">
+                        {isCorrectAnswer ? 'check_circle' : isSelected ? 'cancel' : 'radio_button_unchecked'}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Bottom control panel */}

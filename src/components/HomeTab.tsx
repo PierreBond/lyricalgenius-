@@ -7,6 +7,7 @@ interface HomeTabProps {
   startNewGame: (category?: string) => void;
   stats: UserStats;
   updateStats?: (xpGained: number, diamondsGained: number) => void;
+  isOffline?: boolean;
 }
 
 interface Quest {
@@ -20,7 +21,7 @@ interface Quest {
   icon: string;
 }
 
-export default function HomeTab({ setCurrentTab, startNewGame, stats, updateStats }: HomeTabProps) {
+export default function HomeTab({ setCurrentTab, startNewGame, stats, updateStats, isOffline = false }: HomeTabProps) {
   const [showNotification, setShowNotification] = useState<string | null>(null);
 
   // Daily engagement login streak tracking
@@ -331,6 +332,23 @@ export default function HomeTab({ setCurrentTab, startNewGame, stats, updateStat
 
   return (
     <div className="w-full pb-28 pt-4 px-4 max-w-lg md:max-w-2xl mx-auto space-y-8 select-none">
+      {/* Offline Performance Notification Banner */}
+      {isOffline && (
+        <div className="bg-[#b71422] text-[#fcf9f2] border-4 border-[#1c1c18] rounded-[24px] p-4.5 md:p-5 hard-shadow flex items-start gap-4">
+          <div className="bg-white text-[#b71422] border-2 border-[#1c1c18] p-2 rounded-full shadow-xs flex-shrink-0">
+            <span className="material-symbols-outlined text-2xl font-black">wifi_off</span>
+          </div>
+          <div className="space-y-1 pb-1">
+            <h4 className="font-display font-black text-xs md:text-sm uppercase tracking-tight text-white leading-none">
+              Fully Playable Offline Mode Active
+            </h4>
+            <p className="font-sans text-[10.5px] text-[#fcf9f2]/90 leading-relaxed font-bold">
+              The Service Worker has pre-cached Lyric Genius. You can play all trivia playlists, review metrics, and earn simulated diamonds completely offline! Features will synchronize automatically when connection is restored.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Toast Alert */}
       {showNotification && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-[#fcd400] text-[#1c1c18] border-2 border-[#1c1c18] px-4 py-3 rounded-xl font-sans font-bold text-sm hard-shadow flex items-center justify-between gap-2 max-w-sm">

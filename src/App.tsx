@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tab, UserStats } from './types';
 import Header from './components/Header';
 import Navigation from './components/Navigation';
@@ -24,6 +24,24 @@ export default function App() {
     const completed = localStorage.getItem('lyric_genius_tutorial_completed_v1');
     return completed !== 'true';
   });
+
+  // Offline state monitoring
+  const [isOffline, setIsOffline] = useState<boolean>(() => {
+    return typeof navigator !== 'undefined' ? !navigator.onLine : false;
+  });
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // User Profile stats
   const [stats, setStats] = useState<UserStats>({
@@ -175,6 +193,7 @@ export default function App() {
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         stats={stats}
+        isOffline={isOffline}
         showBack={currentTab === 'settings' || (currentTab === 'play' && selectedCategory !== null)}
         onBack={() => {
           if (currentTab === 'settings') {
@@ -194,6 +213,7 @@ export default function App() {
             startNewGame={startNewGame}
             stats={stats}
             updateStats={handleUpdateStats}
+            isOffline={isOffline}
           />
         )}
 
