@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Tab, UserStats } from '../types';
 
 interface SettingsTabProps {
@@ -27,6 +28,16 @@ export default function SettingsTab({
 
   // Genre interests
   const [preferredGenres, setPreferredGenres] = useState<string[]>(['HIP-HOP', 'POP', 'R&B']);
+
+  // Custom alert dialog state
+  const [dialogConfig, setDialogConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    isPrompt?: boolean;
+    onConfirm?: (val: string) => void;
+  } | null>(null);
+  const [dialogInput, setDialogInput] = useState('');
 
   const toggleGenre = (genre: string) => {
     if (preferredGenres.includes(genre)) {
@@ -57,7 +68,11 @@ export default function SettingsTab({
 
         <div className="space-y-3">
           <button 
-            onClick={() => alert("Profile edits popup simulated! You can edit your name on the Profile view directly.")}
+            onClick={() => setDialogConfig({
+              isOpen: true,
+              title: "Edit Profile Info",
+              message: "Profile edits are simulated! You can customize your name and display details on the Profile tab easily."
+            })}
             className="w-full flex items-center justify-between p-3.5 bg-white border-2 border-[#1c1c18] hard-shadow rounded-xl active:translate-y-0.5 active:shadow-none transition-all"
           >
             <div className="flex items-center gap-3">
@@ -69,8 +84,20 @@ export default function SettingsTab({
 
           <button 
             onClick={() => {
-              const newEmail = prompt("Enter your new email address:", "alex@genius.app");
-              if (newEmail) alert(`Email updated to ${newEmail}!`);
+              setDialogInput("alex@genius.app");
+              setDialogConfig({
+                isOpen: true,
+                title: "Update Email Address",
+                message: "Enter your new email address below to update your account link:",
+                isPrompt: true,
+                onConfirm: (val) => {
+                  setDialogConfig({
+                    isOpen: true,
+                    title: "Email Updated",
+                    message: `Successfully linked account email to ${val || 'alex@genius.app'}!`
+                  });
+                }
+              });
             }}
             className="w-full flex items-center justify-between p-3.5 bg-white border-2 border-[#1c1c18] hard-shadow rounded-xl active:translate-y-0.5 active:shadow-none transition-all"
           >
@@ -85,7 +112,11 @@ export default function SettingsTab({
           </button>
 
           <button 
-            onClick={() => alert("Simulation: A change password email instruction link has been triggered to your mail inbox.")}
+            onClick={() => setDialogConfig({
+              isOpen: true,
+              title: "Reset Password Link",
+              message: "Simulation Completed: A change password email instruction link has been triggered to your mail inbox."
+            })}
             className="w-full flex items-center justify-between p-3.5 bg-white border-2 border-[#1c1c18] hard-shadow rounded-xl active:translate-y-0.5 active:shadow-none transition-all"
           >
             <div className="flex items-center gap-3">
@@ -320,18 +351,42 @@ export default function SettingsTab({
             </span>
             <span className="material-symbols-outlined text-sm">chevron_right</span>
           </button>
-          <a onClick={() => alert("Simulation: Redirecting to official support knowledge base center")} className="flex items-center justify-between p-3.5 hover:bg-[#ebe8e1] transition-colors cursor-pointer text-xs font-bold font-sans">
+          <button 
+            type="button"
+            onClick={() => setDialogConfig({
+              isOpen: true,
+              title: "Help Center",
+              message: "Simulation: Redirecting to official support knowledge base center..."
+            })} 
+            className="w-full text-left flex items-center justify-between p-3.5 hover:bg-[#ebe8e1] bg-white transition-colors cursor-pointer text-xs font-bold font-sans border-0"
+          >
             <span>Help Center</span>
             <span className="material-symbols-outlined text-sm">open_in_new</span>
-          </a>
-          <a onClick={() => alert("Simulation: Redirecting to lyric-genius rules and Privacy Policies statement")} className="flex items-center justify-between p-3.5 hover:bg-[#ebe8e1] transition-colors cursor-pointer text-xs font-bold font-sans">
+          </button>
+          <button 
+            type="button"
+            onClick={() => setDialogConfig({
+              isOpen: true,
+              title: "Privacy Policy",
+              message: "Simulation: Redirecting to lyric-genius rules and Privacy Policies statement..."
+            })} 
+            className="w-full text-left flex items-center justify-between p-3.5 hover:bg-[#ebe8e1] bg-white transition-colors cursor-pointer text-xs font-bold font-sans border-0"
+          >
             <span>Privacy Policy</span>
             <span className="material-symbols-outlined text-sm">open_in_new</span>
-          </a>
-          <a onClick={() => alert("Simulation: Redirecting to lyric-genius Terms of Service statement")} className="flex items-center justify-between p-3.5 hover:bg-[#ebe8e1] transition-colors cursor-pointer text-xs font-bold font-sans">
+          </button>
+          <button 
+            type="button"
+            onClick={() => setDialogConfig({
+              isOpen: true,
+              title: "Terms of Service",
+              message: "Simulation: Redirecting to lyric-genius Terms of Service statement..."
+            })} 
+            className="w-full text-left flex items-center justify-between p-3.5 hover:bg-[#ebe8e1] bg-white transition-colors cursor-pointer text-xs font-bold font-sans border-0"
+          >
             <span>Terms of Service</span>
             <span className="material-symbols-outlined text-sm">open_in_new</span>
-          </a>
+          </button>
         </div>
       </div>
 
@@ -350,6 +405,60 @@ export default function SettingsTab({
           Lyric Genius v4.2.0 • Made with Beat
         </p>
       </div>
+
+      {/* Stateful Custom Popups Modal */}
+      <AnimatePresence>
+        {dialogConfig && dialogConfig.isOpen && (
+          <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4 select-none">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -15 }}
+              className="bg-[#fcf9f2] border-4 border-[#1c1c18] p-6 rounded-3xl max-w-sm w-full relative hard-shadow-lg sticker-rotate-1 text-center space-y-4"
+            >
+              <h3 className="font-display font-black text-lg uppercase tracking-tight text-[#1c1c18]">
+                {dialogConfig.title}
+              </h3>
+              <p className="font-sans text-xs text-[#5b403e] leading-relaxed">
+                {dialogConfig.message}
+              </p>
+
+              {dialogConfig.isPrompt && (
+                <input 
+                  type="text"
+                  value={dialogInput}
+                  onChange={(e) => setDialogInput(e.target.value)}
+                  className="w-full text-center h-11 border-2 border-[#1c1c18] rounded-xl font-sans font-semibold text-xs placeholder-[#c6c6c6] bg-white focus:ring-[#b71422] p-2 mt-2"
+                />
+              )}
+
+              <div className="flex gap-2 pt-2">
+                {dialogConfig.isPrompt && (
+                  <button 
+                    onClick={() => setDialogConfig(null)}
+                    className="flex-1 bg-stone-200 hover:bg-stone-300 text-[#1c1c18] py-2.5 border-2 border-[#1c1c18] rounded-full font-sans font-extrabold text-[11px] uppercase transition-all shadow-xs active:translate-y-0.5"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button 
+                  onClick={() => {
+                    const finalVal = dialogInput;
+                    setDialogConfig(null);
+                    setDialogInput('');
+                    if (dialogConfig.onConfirm) {
+                      dialogConfig.onConfirm(finalVal);
+                    }
+                  }}
+                  className="flex-1 bg-[#1c1c18] hover:bg-[#b71422] text-white py-2.5 rounded-full font-sans font-extrabold text-[11px] uppercase transition-colors hard-shadow-xs active:translate-y-0.5"
+                >
+                  Confirm
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

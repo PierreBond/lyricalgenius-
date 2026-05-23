@@ -24,6 +24,7 @@ export default function ProFlow({
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
   const [saveCard, setSaveCard] = useState(true);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Confetti particles state for success screen
   const [confetti, setConfetti] = useState<{ id: number; left: number; top: number; size: number; rotate: number; color: string }[]>([]);
@@ -72,9 +73,10 @@ export default function ProFlow({
 
   const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     if (paymentMethod === 'card') {
       if (!cardNumber || !expiry || !cvv) {
-        alert("Please key in your card numbers to confirm subscription secure payment!");
+        setFormError("Please key in your card numbers to confirm subscription secure payment!");
         return;
       }
     }
@@ -392,6 +394,12 @@ export default function ProFlow({
 
             {/* Card Inputs Form (if card chosen) */}
             <form onSubmit={handlePaymentSubmit} className="space-y-4 text-left">
+              {formError && (
+                <div className="bg-[#fee2e2] text-[#b91c1c] border-2 border-[#b71422] p-3.5 rounded-xl font-sans font-extrabold text-xs text-center sticker-rotate-1 flex items-center justify-center gap-2 shadow-xs">
+                  <span className="material-symbols-outlined text-sm font-black text-[#b71422]">error</span>
+                  <span>{formError}</span>
+                </div>
+              )}
               {paymentMethod === 'card' ? (
                 <div className="bg-white border-2 border-[#1c1c18] rounded-xl p-5 hard-shadow space-y-4">
                   <div className="space-y-1.5">

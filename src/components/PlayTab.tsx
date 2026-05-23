@@ -30,6 +30,7 @@ export default function PlayTab({
   const [maxStreak, setMaxStreak] = useState(0);
   const [gameFinished, setGameFinished] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
   const [reactionText, setReactionText] = useState<'correct' | 'incorrect' | null>(null);
   const [vibeChosen, setVibeChosen] = useState<string | null>(null);
 
@@ -325,12 +326,28 @@ export default function PlayTab({
                 </div>
                 <button 
                   onClick={() => {
-                    alert("Copied to clipboard!");
-                    setShowShareModal(false);
+                    const textToCopy = `🌟 I scored ${score}/5 on Lyric Genius trivia! Can you beat my high score and win ranks? 🎵 Play at lyric-genius.app`;
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                      navigator.clipboard.writeText(textToCopy);
+                    } else {
+                      const textArea = document.createElement("textarea");
+                      textArea.value = textToCopy;
+                      document.body.appendChild(textArea);
+                      textArea.select();
+                      document.execCommand("copy");
+                      document.body.removeChild(textArea);
+                    }
+                    setCopySuccess(true);
+                    setTimeout(() => {
+                      setCopySuccess(false);
+                      setShowShareModal(false);
+                    }, 1200);
                   }}
-                  className="w-full bg-[#1c1c18] text-white py-3 rounded-full font-sans font-extrabold text-xs uppercase hover:bg-[#b71422] transition-colors"
+                  className={`w-full py-3 rounded-full font-sans font-extrabold text-[#fcf9f2] text-xs uppercase transition-colors ${
+                    copySuccess ? 'bg-[#10b981]' : 'bg-[#1c1c18] hover:bg-[#b71422]'
+                  }`}
                 >
-                  COPY MESSAGE LINK
+                  {copySuccess ? 'Copied to Clipboard! 📋' : 'COPY MESSAGE LINK'}
                 </button>
               </div>
             </div>
