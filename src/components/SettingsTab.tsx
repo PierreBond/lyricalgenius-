@@ -52,7 +52,12 @@ export default function SettingsTab({
   };
 
   return (
-    <div className="w-full pb-32 pt-4 px-4 max-w-md mx-auto space-y-8 select-none">
+    <motion.div
+      initial={{ opacity: 0, x: -15 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="w-full pb-32 pt-4 px-4 max-w-md mx-auto space-y-8 select-none"
+    >
       {/* Header Title Section */}
       <section className="mt-2">
         <h2 className="font-display font-black text-2xl md:text-3xl uppercase leading-none text-[#1c1c18]">Settings</h2>
@@ -459,6 +464,6 @@ export default function SettingsTab({
           </div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
