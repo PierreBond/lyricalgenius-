@@ -57,7 +57,7 @@ export default function App() {
 
   // Action: Launch game with selected category or null (all)
   const startNewGame = (categoryName?: string) => {
-    setSelectedCategory(categoryName || null);
+    setSelectedCategory(categoryName || 'All');
     setCurrentTab('play');
   };
 
@@ -200,7 +200,6 @@ export default function App() {
             setCurrentTab('home');
           } else if (currentTab === 'play') {
             setSelectedCategory(null);
-            setCurrentTab('home');
           }
         }}
       />
@@ -264,7 +263,12 @@ export default function App() {
       {/* Fixed bottom Navigation bar */}
       <Navigation
         currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
+        setCurrentTab={(tabStyle) => {
+          if (tabStyle === 'play') {
+            setSelectedCategory(null);
+          }
+          setCurrentTab(tabStyle);
+        }}
       />
 
       {/* Onboarding Interactive Tutorial Overlay */}
