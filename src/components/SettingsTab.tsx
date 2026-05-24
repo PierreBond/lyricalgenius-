@@ -6,6 +6,7 @@ interface SettingsTabProps {
   stats: UserStats;
   openProFlow: () => void;
   setCurrentTab: (tab: Tab) => void;
+  updateProfile?: (username: string, avatar?: string) => void;
   onLogout: () => void;
   onLaunchTutorial: () => void;
 }
@@ -14,6 +15,7 @@ export default function SettingsTab({
   stats,
   openProFlow,
   setCurrentTab,
+  updateProfile,
   onLogout,
   onLaunchTutorial
 }: SettingsTabProps) {
@@ -29,15 +31,19 @@ export default function SettingsTab({
   // Genre interests
   const [preferredGenres, setPreferredGenres] = useState<string[]>(['HIP-HOP', 'POP', 'R&B']);
 
-  // Custom alert dialog state
-  const [dialogConfig, setDialogConfig] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    isPrompt?: boolean;
-    onConfirm?: (val: string) => void;
-  } | null>(null);
-  const [dialogInput, setDialogInput] = useState('');
+  // Stateful Custom Modals
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [tempUsername, setTempUsername] = useState(stats.username || '');
+  const [tempAvatar, setTempAvatar] = useState(stats.avatar || '');
+
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [tempEmail, setTempEmail] = useState('alex@genius.app');
+  const [emailSuccess, setEmailSuccess] = useState(false);
+
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+
+  const [infoModalOpen, setInfoModalOpen] = useState<{isOpen: boolean; title: string; content: string}>({isOpen: false, title: '', content: ''});
 
   const toggleGenre = (genre: string) => {
     if (preferredGenres.includes(genre)) {
@@ -73,11 +79,11 @@ export default function SettingsTab({
 
         <div className="space-y-3">
           <button 
-            onClick={() => setDialogConfig({
-              isOpen: true,
-              title: "Edit Profile Info",
-              message: "Profile edits are simulated! You can customize your name and display details on the Profile tab easily."
-            })}
+            onClick={() => {
+              setTempUsername(stats.username);
+              setTempAvatar(stats.avatar);
+              setEditProfileOpen(true);
+            }}
             className="w-full flex items-center justify-between p-3.5 bg-white border-2 border-[#1c1c18] hard-shadow rounded-xl active:translate-y-0.5 active:shadow-none transition-all"
           >
             <div className="flex items-center gap-3">
@@ -89,20 +95,8 @@ export default function SettingsTab({
 
           <button 
             onClick={() => {
-              setDialogInput("alex@genius.app");
-              setDialogConfig({
-                isOpen: true,
-                title: "Update Email Address",
-                message: "Enter your new email address below to update your account link:",
-                isPrompt: true,
-                onConfirm: (val) => {
-                  setDialogConfig({
-                    isOpen: true,
-                    title: "Email Updated",
-                    message: `Successfully linked account email to ${val || 'alex@genius.app'}!`
-                  });
-                }
-              });
+              setEmailSuccess(false);
+              setEmailOpen(true);
             }}
             className="w-full flex items-center justify-between p-3.5 bg-white border-2 border-[#1c1c18] hard-shadow rounded-xl active:translate-y-0.5 active:shadow-none transition-all"
           >
@@ -110,18 +104,17 @@ export default function SettingsTab({
               <span className="material-symbols-outlined opacity-70 text-sm">mail</span>
               <div className="text-left">
                 <span className="block font-sans font-bold text-xs md:text-sm">Email Address</span>
-                <span className="text-[10px] font-mono text-[#5b403e]">alex@genius.app</span>
+                <span className="text-[10px] font-mono text-[#5b403e]">{tempEmail}</span>
               </div>
             </div>
             <span className="material-symbols-outlined text-xs">chevron_right</span>
           </button>
 
           <button 
-            onClick={() => setDialogConfig({
-              isOpen: true,
-              title: "Reset Password Link",
-              message: "Simulation Completed: A change password email instruction link has been triggered to your mail inbox."
-            })}
+            onClick={() => {
+              setPasswordSuccess(false);
+              setPasswordOpen(true);
+            }}
             className="w-full flex items-center justify-between p-3.5 bg-white border-2 border-[#1c1c18] hard-shadow rounded-xl active:translate-y-0.5 active:shadow-none transition-all"
           >
             <div className="flex items-center gap-3">
@@ -358,10 +351,10 @@ export default function SettingsTab({
           </button>
           <button 
             type="button"
-            onClick={() => setDialogConfig({
+            onClick={() => setInfoModalOpen({
               isOpen: true,
               title: "Help Center",
-              message: "Simulation: Redirecting to official support knowledge base center..."
+              content: "Knowledge base is currently being updated for LyricGenius v2. Check back soon for detailed FAQs on scoring mechanics, matchmaking rules, and Pro features!"
             })} 
             className="w-full text-left flex items-center justify-between p-3.5 hover:bg-[#ebe8e1] bg-white transition-colors cursor-pointer text-xs font-bold font-sans border-0"
           >
@@ -370,10 +363,10 @@ export default function SettingsTab({
           </button>
           <button 
             type="button"
-            onClick={() => setDialogConfig({
+            onClick={() => setInfoModalOpen({
               isOpen: true,
               title: "Privacy Policy",
-              message: "Simulation: Redirecting to lyric-genius rules and Privacy Policies statement..."
+              content: "We take your privacy seriously. Your profile data and match history are stored securely and never sold to third-party ad networks. We use your song choices to improve AI-generated setlists."
             })} 
             className="w-full text-left flex items-center justify-between p-3.5 hover:bg-[#ebe8e1] bg-white transition-colors cursor-pointer text-xs font-bold font-sans border-0"
           >
@@ -382,10 +375,10 @@ export default function SettingsTab({
           </button>
           <button 
             type="button"
-            onClick={() => setDialogConfig({
+            onClick={() => setInfoModalOpen({
               isOpen: true,
               title: "Terms of Service",
-              message: "Simulation: Redirecting to lyric-genius Terms of Service statement..."
+              content: "By playing Lyric Genius, you agree to respect your opponents. Cheating or using scraping bots to instantly guess lyrics will result in account suspension and wiping of lifetime XP tracking."
             })} 
             className="w-full text-left flex items-center justify-between p-3.5 hover:bg-[#ebe8e1] bg-white transition-colors cursor-pointer text-xs font-bold font-sans border-0"
           >
@@ -413,53 +406,202 @@ export default function SettingsTab({
 
       {/* Stateful Custom Popups Modal */}
       <AnimatePresence>
-        {dialogConfig && dialogConfig.isOpen && (
+        {editProfileOpen && (
           <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4 select-none">
             <motion.div 
               initial={{ opacity: 0, scale: 0.9, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -15 }}
-              className="bg-[#fcf9f2] border-4 border-[#1c1c18] p-6 rounded-3xl max-w-sm w-full relative hard-shadow-lg sticker-rotate-1 text-center space-y-4"
+              className="bg-[#fcf9f2] border-4 border-[#1c1c18] p-6 rounded-3xl max-w-sm w-full relative hard-shadow-lg text-center space-y-4"
             >
               <h3 className="font-display font-black text-lg uppercase tracking-tight text-[#1c1c18]">
-                {dialogConfig.title}
+                Edit Profile
               </h3>
-              <p className="font-sans text-xs text-[#5b403e] leading-relaxed">
-                {dialogConfig.message}
-              </p>
+              <div className="space-y-4 text-left">
+                <div className="flex flex-col items-center">
+                  <div className="w-24 h-24 rounded-full border-4 border-[#1c1c18] overflow-hidden hard-shadow mb-3">
+                    <img 
+                      src={tempAvatar || 'https://images.unsplash.com/photo-1534308143481-c55f00be8fdb?q=80&w=250&auto=format&fit=crop'} 
+                      alt="Avatar Preview" 
+                      className="w-full h-full object-cover" 
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534308143481-c55f00be8fdb?q=80&w=250&auto=format&fit=crop';
+                      }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="font-sans font-black text-[10px] uppercase tracking-wide">Avatar URL</label>
+                  <input 
+                    type="text"
+                    value={tempAvatar}
+                    onChange={(e) => setTempAvatar(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full h-11 px-3 mt-1 border-2 border-[#1c1c18] rounded-xl font-sans font-semibold text-xs placeholder-[#c6c6c6] bg-white focus:ring-[#b71422] focus:border-[#b71422]"
+                  />
+                </div>
+                <div>
+                  <label className="font-sans font-black text-[10px] uppercase tracking-wide">Username</label>
+                  <input 
+                    type="text"
+                    value={tempUsername}
+                    onChange={(e) => setTempUsername(e.target.value)}
+                    placeholder="Your artist name..."
+                    className="w-full h-11 px-3 mt-1 border-2 border-[#1c1c18] rounded-xl font-sans font-semibold text-xs placeholder-[#c6c6c6] bg-white focus:ring-[#b71422] focus:border-[#b71422]"
+                  />
+                </div>
+              </div>
 
-              {dialogConfig.isPrompt && (
-                <input 
-                  type="text"
-                  value={dialogInput}
-                  onChange={(e) => setDialogInput(e.target.value)}
-                  className="w-full text-center h-11 border-2 border-[#1c1c18] rounded-xl font-sans font-semibold text-xs placeholder-[#c6c6c6] bg-white focus:ring-[#b71422] p-2 mt-2"
-                />
-              )}
-
-              <div className="flex gap-2 pt-2">
-                {dialogConfig.isPrompt && (
-                  <button 
-                    onClick={() => setDialogConfig(null)}
-                    className="flex-1 bg-stone-200 hover:bg-stone-300 text-[#1c1c18] py-2.5 border-2 border-[#1c1c18] rounded-full font-sans font-extrabold text-[11px] uppercase transition-all shadow-xs active:translate-y-0.5"
-                  >
-                    Cancel
-                  </button>
-                )}
+              <div className="flex gap-2 pt-4">
+                <button 
+                  onClick={() => setEditProfileOpen(false)}
+                  className="flex-1 bg-stone-200 hover:bg-stone-300 text-[#1c1c18] py-2.5 border-2 border-[#1c1c18] rounded-full font-sans font-extrabold text-[11px] uppercase transition-all shadow-xs active:translate-y-0.5"
+                >
+                  Cancel
+                </button>
                 <button 
                   onClick={() => {
-                    const finalVal = dialogInput;
-                    setDialogConfig(null);
-                    setDialogInput('');
-                    if (dialogConfig.onConfirm) {
-                      dialogConfig.onConfirm(finalVal);
+                    if (updateProfile) {
+                      updateProfile(tempUsername, tempAvatar);
                     }
+                    setEditProfileOpen(false);
                   }}
                   className="flex-1 bg-[#1c1c18] hover:bg-[#b71422] text-white py-2.5 rounded-full font-sans font-extrabold text-[11px] uppercase transition-colors hard-shadow-xs active:translate-y-0.5"
                 >
-                  Confirm
+                  Save Profile
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+
+        {emailOpen && (
+          <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4 select-none">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -15 }}
+              className="bg-[#fcf9f2] border-4 border-[#1c1c18] p-6 rounded-3xl max-w-sm w-full relative hard-shadow-lg text-center space-y-4"
+            >
+              <span className="material-symbols-outlined text-4xl text-[#b71422] fill-1 block mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>mail</span>
+              <h3 className="font-display font-black text-lg uppercase tracking-tight text-[#1c1c18]">
+                {emailSuccess ? 'Email Updated' : 'Update Email'}
+              </h3>
+              
+              {!emailSuccess ? (
+                <>
+                  <p className="font-sans text-xs text-[#5b403e] leading-relaxed mb-4">
+                    Enter your new email address to link with your account.
+                  </p>
+                  <input 
+                    type="email"
+                    value={tempEmail}
+                    onChange={(e) => setTempEmail(e.target.value)}
+                    className="w-full text-center h-12 border-2 border-[#1c1c18] rounded-xl font-sans font-semibold text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#b71422] px-3 transition-shadow"
+                    placeholder="student@example.com"
+                  />
+                  <div className="flex gap-2 pt-4">
+                    <button 
+                      onClick={() => setEmailOpen(false)}
+                      className="flex-1 bg-stone-200 hover:bg-stone-300 text-[#1c1c18] py-3 border-2 border-[#1c1c18] rounded-full font-sans font-extrabold text-[11px] uppercase transition-all shadow-xs active:translate-y-0.5"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={() => setEmailSuccess(true)}
+                      className="flex-1 bg-[#1c1c18] hover:bg-[#b71422] text-white py-3 rounded-full font-sans font-extrabold text-[11px] uppercase transition-colors hard-shadow-xs active:translate-y-0.5"
+                    >
+                      Update
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="font-sans text-xs text-[#5c5c5c] leading-relaxed">
+                    Successfully linked account to <strong className="text-[#1c1c18]">{tempEmail}</strong>! A verification link has been sent to confirm ownership.
+                  </p>
+                  <button 
+                    onClick={() => setEmailOpen(false)}
+                    className="w-full bg-[#1c1c18] hover:bg-[#b71422] text-white py-3 mt-4 rounded-full font-sans font-extrabold text-[11px] uppercase transition-colors hard-shadow-xs active:translate-y-0.5"
+                  >
+                    Got It
+                  </button>
+                </>
+              )}
+            </motion.div>
+          </div>
+        )}
+
+        {passwordOpen && (
+          <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4 select-none">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -15 }}
+              className="bg-[#fcf9f2] border-4 border-[#1c1c18] p-6 rounded-3xl max-w-sm w-full relative hard-shadow-lg text-center space-y-4"
+            >
+              <span className="material-symbols-outlined text-4xl text-[#1c1c18] fill-1 block mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>lock_reset</span>
+              <h3 className="font-display font-black text-lg uppercase tracking-tight text-[#1c1c18]">
+                {passwordSuccess ? 'Link Sent' : 'Reset Password'}
+              </h3>
+              
+              {!passwordSuccess ? (
+                <>
+                  <p className="font-sans text-xs text-[#5b403e] leading-relaxed">
+                    Would you like us to send a password reset link to your registered email address?
+                  </p>
+                  <div className="flex gap-2 pt-4">
+                    <button 
+                      onClick={() => setPasswordOpen(false)}
+                      className="flex-1 bg-stone-200 hover:bg-stone-300 text-[#1c1c18] py-3 border-2 border-[#1c1c18] rounded-full font-sans font-extrabold text-[11px] uppercase transition-all shadow-xs active:translate-y-0.5"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={() => setPasswordSuccess(true)}
+                      className="flex-1 bg-[#1c1c18] hover:bg-[#b71422] text-white py-3 rounded-full font-sans font-extrabold text-[11px] uppercase transition-colors hard-shadow-xs active:translate-y-0.5"
+                    >
+                      Send Link
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="font-sans text-xs text-[#5c5c5c] leading-relaxed">
+                    A secure password reset link has been dispatched to your inbox. It will expire in 15 minutes!
+                  </p>
+                  <button 
+                    onClick={() => setPasswordOpen(false)}
+                    className="w-full bg-[#1c1c18] hover:bg-[#b71422] text-white py-3 mt-4 rounded-full font-sans font-extrabold text-[11px] uppercase transition-colors hard-shadow-xs active:translate-y-0.5"
+                  >
+                    Close
+                  </button>
+                </>
+              )}
+            </motion.div>
+          </div>
+        )}
+
+        {infoModalOpen.isOpen && (
+          <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4 select-none">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -15 }}
+              className="bg-[#fcf9f2] border-4 border-[#1c1c18] p-6 rounded-[24px] max-w-sm w-full relative hard-shadow-lg text-center"
+            >
+              <h3 className="font-display font-black text-xl uppercase tracking-tight text-[#1c1c18] mb-3">
+                {infoModalOpen.title}
+              </h3>
+              <p className="font-sans text-[13px] font-medium text-[#5b403e] leading-relaxed mb-6">
+                {infoModalOpen.content}
+              </p>
+              <button 
+                onClick={() => setInfoModalOpen({isOpen: false, title: '', content: ''})}
+                className="w-full bg-[#1c1c18] hover:bg-[#b71422] text-white py-3 rounded-xl font-sans font-extrabold text-[11px] uppercase transition-colors hard-shadow-xs active:translate-y-0.5"
+              >
+                Understood
+              </button>
             </motion.div>
           </div>
         )}

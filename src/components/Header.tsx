@@ -76,7 +76,7 @@ export default function Header({
           <img 
             alt="User avatar" 
             className="w-full h-full object-cover" 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIOXy9cHYQZkuvXne9VCqqmAzZcLLwXWc7Nzs1i1VqBIdw3VF0L4rI6tdYNLL4zJL2VVn0cBk--VzRvasWhSxV_e6_J2PdmvdoPbU6ImE2KjMjTr6N7IaNyI5GL3z1J4txZpJLrhGRfm8iJY6c5UNWin6g87v56AlrI--TH4kC5-iwFjYo7w57j44hBIMsqDT4Pu3qOuilB_-9vkuyiBmAithvnsICKSg7RGwQspmiGmIkDoPs7zKE7VYWuHq55oJB6Adsr-enz_M" 
+            src={stats.avatar || "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=150&auto=format&fit=crop"} 
           />
         </div>
       </div>

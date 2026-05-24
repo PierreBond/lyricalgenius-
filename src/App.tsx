@@ -45,6 +45,8 @@ export default function App() {
 
   // User Profile stats
   const [stats, setStats] = useState<UserStats>({
+    username: 'LyricLord_42',
+    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBIOXy9cHYQZkuvXne9VCqqmAzZcLLwXWc7Nzs1i1VqBIdw3VF0L4rI6tdYNLL4zJL2VVn0cBk--VzRvasWhSxV_e6_J2PdmvdoPbU6ImE2KjMjTr6N7IaNyI5GL3z1J4txZpJLrhGRfm8iJY6c5UNWin6g87v56AlrI--TH4kC5-iwFjYo7w57j44hBIMsqDT4Pu3qOuilB_-9vkuyiBmAithvnsICKSg7RGwQspmiGmIkDoPs7zKE7VYWuHq55oJB6Adsr-enz_M',
     diamonds: 1240,
     level: 15,
     xp: 12450,
@@ -105,6 +107,14 @@ export default function App() {
     if (diamondsGained > 0) {
       handleUpdateStats(0, diamondsGained);
     }
+  };
+
+  const handleUpdateProfile = (username: string, avatar?: string) => {
+    setStats((prev) => ({
+      ...prev,
+      username,
+      ...(avatar ? { avatar } : {})
+    }));
   };
 
   const handleCloseTutorial = () => {
@@ -245,6 +255,7 @@ export default function App() {
           <ProfileTab
             stats={stats}
             updateStats={handleUpdateStats}
+            updateProfile={handleUpdateProfile}
             setCurrentTab={setCurrentTab}
           />
         )}
@@ -254,6 +265,7 @@ export default function App() {
             stats={stats}
             openProFlow={() => setCurrentTab('pro')}
             setCurrentTab={setCurrentTab}
+            updateProfile={handleUpdateProfile}
             onLogout={handleLogout}
             onLaunchTutorial={() => setShowTutorial(true)}
           />

@@ -14,6 +14,7 @@ import {
 interface ProfileTabProps {
   stats: UserStats;
   updateStats: (xpGained: number, diamondsGained: number) => void;
+  updateProfile?: (username: string, avatar?: string) => void;
   setCurrentTab: (tab: Tab) => void;
 }
 
@@ -107,8 +108,14 @@ const AnimatedRPGCounter = ({ value, className = '' }: AnimatedRPGCounterProps) 
   );
 };
 
-export default function ProfileTab({ stats, updateStats, setCurrentTab }: ProfileTabProps) {
-  const [username, setUsername] = useState('LyricLord_42');
+export default function ProfileTab({ stats, updateStats, updateProfile, setCurrentTab }: ProfileTabProps) {
+  const [localUsername, setLocalUsername] = useState(stats.username);
+  
+  // Sync if stats.username changes externally
+  useEffect(() => {
+    setLocalUsername(stats.username);
+  }, [stats.username]);
+
   const [isEditing, setIsEditing] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -148,7 +155,7 @@ export default function ProfileTab({ stats, updateStats, setCurrentTab }: Profil
             <img 
               alt="User Avatar" 
               className="w-full h-full object-cover" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIOXy9cHYQZkuvXne9VCqqmAzZcLLwXWc7Nzs1i1VqBIdw3VF0L4rI6tdYNLL4zJL2VVn0cBk--VzRvasWhSxV_e6_J2PdmvdoPbU6ImE2KjMjTr6N7IaNyI5GL3z1J4txZpJLrhGRfm8iJY6c5UNWin6g87v56AlrI--TH4kC5-iwFjYo7w57j44hBIMsqDT4Pu3qOuilB_-9vkuyiBmAithvnsICKSg7RGwQspmiGmIkDoPs7zKE7VYWuHq55oJB6Adsr-enz_M" 
+              src={stats.avatar || "https://images.unsplash.com/photo-1534308143481-c55f00be8fdb?q=80&w=250&auto=format&fit=crop"} 
             />
           </div>
           <div className="absolute -bottom-2 -right-2 bg-[#fcd400] text-[#1c1c18] border-2 border-[#1c1c18] px-3 py-1 rounded-lg hard-shadow-sm font-sans font-black text-xs rotate-12 flex items-center gap-0.5">
@@ -161,16 +168,24 @@ export default function ProfileTab({ stats, updateStats, setCurrentTab }: Profil
           {isEditing ? (
             <input 
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              onBlur={() => setIsEditing(false)}
-              onKeyDown={(e) => { if (e.key === 'Enter') setIsEditing(false); }}
+              value={localUsername}
+              onChange={(e) => setLocalUsername(e.target.value)}
+              onBlur={() => {
+                setIsEditing(false);
+                if (updateProfile) updateProfile(localUsername, stats.avatar);
+              }}
+              onKeyDown={(e) => { 
+                if (e.key === 'Enter') {
+                  setIsEditing(false);
+                  if (updateProfile) updateProfile(localUsername, stats.avatar);
+                } 
+              }}
               autoFocus
               className="font-display font-black text-2xl uppercase text-center border-b-2 border-[#b71422] focus:outline-none bg-transparent max-w-[220px]"
             />
           ) : (
             <h2 className="font-display font-black text-2xl uppercase tracking-tight text-[#1c1c18]">
-              {username}
+              {stats.username}
             </h2>
           )}
           <button 

@@ -56,6 +56,8 @@ export interface MatchHistoryItem {
 export type ProPhase = 'plans' | 'verdict' | 'checkout' | 'success';
 
 export interface UserStats {
+  username: string;
+  avatar: string;
   diamonds: number;
   xp: number;
   winRate: number;
